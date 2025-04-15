@@ -7,6 +7,7 @@ const NAMESPACE_DELIMITER = ':';
 
 export const CALLBACK_TYPES = {
   motion: 'onMotionDetected',
+  people: 'onPeopleDetected', // New callback type
 };
 
 const EVENTS = {
@@ -15,11 +16,13 @@ const EVENTS = {
   'RuleEngine/CellMotionDetector/Motion': CALLBACK_TYPES.motion,
   'RuleEngine/CellMotionDetector/Motion//.': CALLBACK_TYPES.motion,
   'VideoSoure/MotionAlarm': CALLBACK_TYPES.motion,
-  'VideoSource/MotionAlarm': CALLBACK_TYPES.motion
+  'VideoSource/MotionAlarm': CALLBACK_TYPES.motion,
+  'RuleEngine/PeopleDetector/People': CALLBACK_TYPES.people, // New event mapping
 };
 
 const DEFAULT_CALLBACKS = {
   [CALLBACK_TYPES.motion]: NO_OP,
+  [CALLBACK_TYPES.people]: NO_OP, // Default no-op for people detection
 };
 
 export default class SubscriberGroup {

@@ -38,6 +38,7 @@ export default class Manager {
     this.subscriber.destroy();
     this.initializeOnvifDevices(this.config.get('onvif'));
     this.subscriber.withCallback(CALLBACK_TYPES.motion, this.onMotionDetected);
+    this.subscriber.withCallback(CALLBACK_TYPES.people, this.onPeopleDetected); // Register the new callback
   };
 
   initializeOnvifDevices = devices => {
@@ -47,6 +48,7 @@ export default class Manager {
       await this.subscriber.addSubscriber(onvifDevice);
 
       this.onMotionDetected(name, false);
+      this.onPeopleDetected(name, false); // Initialize people detection state
     });
   };
 
@@ -80,6 +82,19 @@ export default class Manager {
 
     this.publishTemplates(onvifDeviceId, topicKey, boolMotionState);
     this.publisher.publish(onvifDeviceId, topicKey, convertBooleanToSensorState(boolMotionState));
+  });
+
+  onPeopleDetected = debounceStateUpdate((onvifDeviceId, peopleState) => {
+    try {
+
+      const topicKey = 'people';
+      const boolPeopleState = peopleState.IsPeople !== undefined ? peopleState.IsPeople : peopleState.State;
+
+      this.publishTemplates(onvifDeviceId, topicKey, boolPeopleState);
+      this.publisher.publish(onvifDeviceId, topicKey, convertBooleanToSensorState(boolPeopleState));
+    } catch (error) {
+      this.logger.error(`Error in onPeopleDetected for device ${onvifDeviceId}:`, error); // Log the error if one occurs
+    }
   });
 
   onExitSendStatus = () => {

@@ -1,8 +1,17 @@
-FROM node:12.16.1
+FROM node:22
 
-WORKDIR /onvif2mqtt
-ADD . /onvif2mqtt
+WORKDIR /app
 
-RUN npm install && npm run build 
+# Copy package.json and package-lock.json
+COPY package.json package-lock.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the application
+COPY . .
+
+# Build the application
+RUN npm run build
 
 CMD npm start
