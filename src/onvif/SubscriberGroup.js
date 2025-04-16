@@ -7,7 +7,8 @@ const NAMESPACE_DELIMITER = ':';
 
 export const CALLBACK_TYPES = {
   motion: 'onMotionDetected',
-  people: 'onPeopleDetected', // New callback type
+  people: 'onPeopleDetected', 
+  line: 'onLineCrossed',
 };
 
 const EVENTS = {
@@ -17,12 +18,16 @@ const EVENTS = {
   'RuleEngine/CellMotionDetector/Motion//.': CALLBACK_TYPES.motion,
   'VideoSoure/MotionAlarm': CALLBACK_TYPES.motion,
   'VideoSource/MotionAlarm': CALLBACK_TYPES.motion,
-  'RuleEngine/PeopleDetector/People': CALLBACK_TYPES.people, // New event mapping
+  'RuleEngine/PeopleDetector/People': CALLBACK_TYPES.people, 
+  'RuleEngine/PeopleDetector/People//.': CALLBACK_TYPES.people, 
+  'RuleEngine/LineCrossDetector/LineCross': CALLBACK_TYPES.line,
+  'RuleEngine/LineCrossDetector/LineCross//.': CALLBACK_TYPES.line
 };
 
 const DEFAULT_CALLBACKS = {
   [CALLBACK_TYPES.motion]: NO_OP,
-  [CALLBACK_TYPES.people]: NO_OP, // Default no-op for people detection
+  [CALLBACK_TYPES.people]: NO_OP,
+  [CALLBACK_TYPES.line]: NO_OP,
 };
 
 export default class SubscriberGroup {

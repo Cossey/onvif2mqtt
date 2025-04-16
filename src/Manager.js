@@ -6,7 +6,11 @@ import MqttPublisher from './mqtt/Publisher';
 import process from 'process';
 
 import { CALLBACK_TYPES } from "./onvif/SubscriberGroup";
-import debounceStateUpdate from "./utils/debounceStateUpdate";
+import {
+  debounceMotionStateUpdate,
+  debouncePeopleStateUpdate,
+  debounceLineStateUpdate
+} from "./utils/debounceStateUpdate";
 import interpolateTemplateValues from './utils/interpolateTemplateValues';
 
 const convertBooleanToSensorState = bool => bool ? 'ON' : 'OFF';
@@ -38,7 +42,8 @@ export default class Manager {
     this.subscriber.destroy();
     this.initializeOnvifDevices(this.config.get('onvif'));
     this.subscriber.withCallback(CALLBACK_TYPES.motion, this.onMotionDetected);
-    this.subscriber.withCallback(CALLBACK_TYPES.people, this.onPeopleDetected); // Register the new callback
+    this.subscriber.withCallback(CALLBACK_TYPES.people, this.onPeopleDetected); 
+    this.subscriber.withCallback(CALLBACK_TYPES.line, this.onLineCrossed);
   };
 
   initializeOnvifDevices = devices => {
@@ -48,7 +53,8 @@ export default class Manager {
       await this.subscriber.addSubscriber(onvifDevice);
 
       this.onMotionDetected(name, false);
-      this.onPeopleDetected(name, false); // Initialize people detection state
+      this.onPeopleDetected(name, false);
+      this.onLineCrossed(name, false);  
     });
   };
 
@@ -76,7 +82,7 @@ export default class Manager {
   };
 
   /* Event Callbacks */
-  onMotionDetected = debounceStateUpdate((onvifDeviceId, motionState) => {
+  onMotionDetected = debounceMotionStateUpdate((onvifDeviceId, motionState) => {
     const topicKey = 'motion';
     const boolMotionState = motionState.IsMotion !== undefined ? motionState.IsMotion : motionState.State;
 
@@ -84,17 +90,20 @@ export default class Manager {
     this.publisher.publish(onvifDeviceId, topicKey, convertBooleanToSensorState(boolMotionState));
   });
 
-  onPeopleDetected = debounceStateUpdate((onvifDeviceId, peopleState) => {
-    try {
-
+  onPeopleDetected = debouncePeopleStateUpdate((onvifDeviceId, peopleState) => {
       const topicKey = 'people';
       const boolPeopleState = peopleState.IsPeople !== undefined ? peopleState.IsPeople : peopleState.State;
 
       this.publishTemplates(onvifDeviceId, topicKey, boolPeopleState);
       this.publisher.publish(onvifDeviceId, topicKey, convertBooleanToSensorState(boolPeopleState));
-    } catch (error) {
-      this.logger.error(`Error in onPeopleDetected for device ${onvifDeviceId}:`, error); // Log the error if one occurs
-    }
+  });
+
+  onLineCrossed = debounceLineStateUpdate((onvifDeviceId, lineCrossedState) => {
+    const topicKey = 'line';
+    const boolLineCrossedState = lineCrossedState.IsLineCross !== undefined ? lineCrossedState.IsLineCross : lineCrossedState.State;
+
+    this.publishTemplates(onvifDeviceId, topicKey, boolLineCrossedState);
+    this.publisher.publish(onvifDeviceId, topicKey, convertBooleanToSensorState(boolLineCrossedState));
   });
 
   onExitSendStatus = () => {
