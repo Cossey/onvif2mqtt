@@ -9,7 +9,9 @@ import { CALLBACK_TYPES } from "./onvif/SubscriberGroup";
 import {
   debounceMotionStateUpdate,
   debouncePeopleStateUpdate,
-  debounceLineStateUpdate
+  debounceLineStateUpdate,
+  debounceVehicleStateUpdate,
+  debounceAnimalStateUpdate
 } from "./utils/debounceStateUpdate";
 import interpolateTemplateValues from './utils/interpolateTemplateValues';
 
@@ -44,6 +46,9 @@ export default class Manager {
     this.subscriber.withCallback(CALLBACK_TYPES.motion, this.onMotionDetected);
     this.subscriber.withCallback(CALLBACK_TYPES.people, this.onPeopleDetected); 
     this.subscriber.withCallback(CALLBACK_TYPES.line, this.onLineCrossed);
+    this.subscriber.withCallback(CALLBACK_TYPES.vehicle, this.onVehicleDetected);
+    this.subscriber.withCallback(CALLBACK_TYPES.animal, this.onAnimalDetected);
+    this.subscriber.withCallback(CALLBACK_TYPES.tplink, this.onTplinkSmartEventDetected);
   };
 
   initializeOnvifDevices = devices => {
@@ -55,6 +60,8 @@ export default class Manager {
       this.onMotionDetected(name, false);
       this.onPeopleDetected(name, false);
       this.onLineCrossed(name, false);  
+      this.onVehicleDetected(name, false);
+      this.onAnimalDetected(name, false);
     });
   };
 
@@ -105,6 +112,35 @@ export default class Manager {
     this.publishTemplates(onvifDeviceId, topicKey, boolLineCrossedState);
     this.publisher.publish(onvifDeviceId, topicKey, convertBooleanToSensorState(boolLineCrossedState));
   });
+
+  onAnimalDetected = debounceAnimalStateUpdate((onvifDeviceId, animalState) => {
+    const topicKey = 'animal';
+    const boolAnimalState = animalState.IsPet !== undefined ? animalState.IsPet : animalState.State;
+
+    this.publishTemplates(onvifDeviceId, topicKey, boolAnimalState);
+    this.publisher.publish(onvifDeviceId, topicKey, convertBooleanToSensorState(boolAnimalState));
+  });
+
+  onVehicleDetected = debounceVehicleStateUpdate((onvifDeviceId, vehicleState) => {
+    const topicKey = 'vehicle';
+    const boolVehicleState = vehicleState.IsVehicle !== undefined ? vehicleState.IsVehicle : vehicleState.State;
+
+    this.publishTemplates(onvifDeviceId, topicKey, boolVehicleState);
+    this.publisher.publish(onvifDeviceId, topicKey, convertBooleanToSensorState(boolVehicleState));
+  });
+
+  onTplinkSmartEventDetected = (onvifDeviceId, tplinkSmartEventState) => {
+    this.logger.trace(`Received TPSmartEventDetector for device ${onvifDeviceId}:`, tplinkSmartEventState);
+    if (tplinkSmartEventState.IsVehicle !== undefined) {
+      this.logger.trace(`Event is vehicle: ${tplinkSmartEventState.IsVehicle}`);
+      this.onVehicleDetected(onvifDeviceId, tplinkSmartEventState);
+    } else if (tplinkSmartEventState.IsPet !== undefined) {
+      this.logger.trace(`Event is pet: ${tplinkSmartEventState.IsPet}`);
+      this.onAnimalDetected(onvifDeviceId, tplinkSmartEventState);
+    } else {
+      this.logger.warn(`Unknown TPSmartEventDetector received for device ${onvifDeviceId}:`, tplinkSmartEventState);
+    }
+  };
 
   onExitSendStatus = () => {
     process.on('SIGTERM', async () => {

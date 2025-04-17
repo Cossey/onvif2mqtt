@@ -4,9 +4,7 @@ Forked from Dmitri Farkov's original project.
 Modifications made to support ONVIF AI events for TAPO cameras, but can be easily extended for other devices.
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-7-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdmitrif%2Fonvif2mqtt.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdmitrif%2Fonvif2mqtt?ref=badge_shield)
+[![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg?style=flat-square)](#contributors-)
 
 ## Table of Contents
 
@@ -27,7 +25,7 @@ Modifications made to support ONVIF AI events for TAPO cameras, but can be easil
   * [Examples / Guides](#examples--guides)
     * [Using with Shinobi](#using-with-shinobi)
     * [Using with HomeAssistant](#using-with-homeassistant)
-    * [Getting Started / Sample Config](#getting--started)
+    * [Getting Started / Sample Config](#getting-started)
 
 ## Purpose
 
@@ -37,7 +35,9 @@ Any number of ONVIF devices is supported.
 
 ## Background
 
-After acquiring an EzViz DB1 camera doorbell, I was happy to find a PIR sensor on it. I was then dismayed to find out that there is no open API to consume the triggered status of it. This project was written to scratch that itch, but it should work for any other ONVIF compliant devices with built-in sensors.
+After acquiring an EzViz DB1 camera doorbell, I was happy to find a PIR sensor on it.
+I was then dismayed to find out that there is no open API to consume the triggered status of it.
+This project was written to scratch that itch, but it should work for any other ONVIF compliant devices with built-in sensors.
 
 ## Requirements
 
@@ -69,24 +69,37 @@ After acquiring an EzViz DB1 camera doorbell, I was happy to find a PIR sensor o
 ## Supported Events
 
 * Motion Sensor
-* Person Detection (Tapo)
-* Line Cross  (Tapo)
+* Person Detection
+* Line Cross
+* Vehicle Detection
+* Pet Detection
+
+> Anything other than Motion Sensor has only been tested with a TAPO C120 on the latest firmware.
+
+## Adding camera/event support
+
+Your ONVIF compatible camera may support similar events but may not be supported out of the box.
+You can enable debug logging in the config file `log: debug` and then check the log output for the *ONVIF event* and then add the event into `SubscriberGroup.js:EVENTS` section.
+
+```text
+name=ONVIF msg=ONVIF received {"subscriberName":"backyard","eventType":"RuleEngine/LineCrossDetector/LineCross","eventValue":{"IsLineCross":true}} v=1
+```
 
 ## Installation
 
 ### Docker
 
-This is the recommended method of consumption for everyday users.
+The recommended method.
 
-1. [Pull the image from docker registry.](https://hub.docker.com/r/dfarkov/onvif2mqtt)
+Pull the image from docker registry.
 
+```sh
+docker pull kosdk/onvif2mqtt:latest
 ```
-docker pull dfarkov/onvif2mqtt:latest
-```
 
-2. Run the image, mounting a config volume containing your configuration (`config.yml`)
+Run the image, mounting a config volume containing your configuration (`config.yml`)
 
-```
+```sh
 docker run -v PATH_TO_CONFIGURATION_FOLDER:/config dfarkov/onvif2mqtt
 ```
 
@@ -94,33 +107,33 @@ docker run -v PATH_TO_CONFIGURATION_FOLDER:/config dfarkov/onvif2mqtt
 
 This method requires an installation of NodeJS / NPM. This is the recommended installation method for development purposes.
 
-1. Clone this repo
+Clone this repo
 
-```
+```sh
 git clone https://github.com/dmitrif/onvif2mqtt
 ```
 
-2. Navigate to the repo folder.
+Navigate to the repo folder.
 
-```
+```sh
 cd ./onvif2mqtt
 ```
 
-3. Install dependencies
+Install dependencies
 
-```
+```sh
 npm install
 ```
 
-4. Create and fill out a configuration file:
+Create and fill out a configuration file:
 
-```
+```sh
 touch config.dev.yml
 ```
 
-5. Run the app:
+Run the app:
 
-```
+```sh
 # For development
 npm run dev
 
@@ -133,7 +146,8 @@ CONFIG_FILE=./config.dev.yml npm run start
 
 ### Notes
 
-Configuration can be placed into a `config.yml` file, containing valid YAML. This file should be placed into the host-mounted config volume; if another location is preferred then the file path can be provided as an environment variable `CONFIG_PATH`.
+Configuration can be placed into a `config.yml` file, containing valid YAML.
+This file should be placed into the host-mounted config volume; if another location is preferred then the file path can be provided as an environment variable `CONFIG_PATH`.
 
 ### MQTT Notes
 
@@ -141,7 +155,8 @@ By default this package publishes events to an topic `onvif2mqtt/$ONVIF_DEVICE/$
 
 ### Templating / Custom Topics
 
-However, by using the `api.templates` option in configuration, one can define a custom `subtopic` and specify a custom template. The following tokens will be interpolated in both the `subtopic` and the `template` values:
+However, by using the `api.templates` option in configuration, one can define a custom `subtopic` and specify a custom template.
+The following tokens will be interpolated in both the `subtopic` and the `template` values:
 
 * `${onvifDeviceId}` - name of the ONVIF device (e.g. `doorbell`)
 * `${eventType}` - type of event captured (e.g. `motion`)
@@ -252,7 +267,3 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
-
-## License
-
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdmitrif%2Fonvif2mqtt.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdmitrif%2Fonvif2mqtt?ref=badge_large)

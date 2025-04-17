@@ -36,3 +36,29 @@ export const debounceLineStateUpdate = eventCallback => {
     eventCallback(onvifDeviceId, lineState);
   };
 };
+
+export const debounceVehicleStateUpdate = eventCallback => {
+    let currentVehicleStates = {};
+
+    return (onvifDeviceId, vehicleState) => {
+      if (currentVehicleStates[onvifDeviceId] === vehicleState) {
+        return;
+      }
+
+      currentVehicleStates[onvifDeviceId] = vehicleState;
+      eventCallback(onvifDeviceId, vehicleState);
+    };
+};
+
+export const debounceAnimalStateUpdate = eventCallback => {
+  let currentAnimalStates = {};
+
+  return (onvifDeviceId, animalState) => {
+    if (currentAnimalStates[onvifDeviceId] === animalState) {
+      return;
+    }
+
+    currentAnimalStates[onvifDeviceId] = animalState;
+    eventCallback(onvifDeviceId, animalState);
+  };
+};

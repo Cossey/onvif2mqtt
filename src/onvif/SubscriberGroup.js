@@ -9,6 +9,9 @@ export const CALLBACK_TYPES = {
   motion: 'onMotionDetected',
   people: 'onPeopleDetected', 
   line: 'onLineCrossed',
+  vehicle: 'onVehicleDetected',
+  animal: 'onAnimalDetected',
+  tplink: 'onTplinkSmartEventDetected',
 };
 
 const EVENTS = {
@@ -21,13 +24,17 @@ const EVENTS = {
   'RuleEngine/PeopleDetector/People': CALLBACK_TYPES.people, 
   'RuleEngine/PeopleDetector/People//.': CALLBACK_TYPES.people, 
   'RuleEngine/LineCrossDetector/LineCross': CALLBACK_TYPES.line,
-  'RuleEngine/LineCrossDetector/LineCross//.': CALLBACK_TYPES.line
+  'RuleEngine/LineCrossDetector/LineCross//.': CALLBACK_TYPES.line,
+  'RuleEngine/TPSmartEventDetector/TPSmartEvent': CALLBACK_TYPES.tplink,
 };
 
 const DEFAULT_CALLBACKS = {
   [CALLBACK_TYPES.motion]: NO_OP,
   [CALLBACK_TYPES.people]: NO_OP,
   [CALLBACK_TYPES.line]: NO_OP,
+  [CALLBACK_TYPES.vehicle]: NO_OP,
+  [CALLBACK_TYPES.animal]: NO_OP,
+  [CALLBACK_TYPES.tplink]: NO_OP,
 };
 
 export default class SubscriberGroup {
